@@ -1,0 +1,94 @@
+<!doctype html><html><head><meta charset='utf-8'><style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN",sans-serif;color:#1F2330;background:#fff;-webkit-font-smoothing:antialiased}
+.phone{position:relative;width:390px;height:844px;overflow:hidden;background:#F6F5FB}
+.status{height:47px;display:flex;justify-content:space-between;align-items:flex-end;padding:0 30px 8px 34px;font-size:15px;font-weight:600}
+.status .r{letter-spacing:2px;font-size:12px}
+.home-ind{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#1F2330}
+.pad{padding:0 24px}
+h1{font-size:26px;font-weight:800}
+.sub{font-size:14px;color:#6B6F80;line-height:1.6}
+.label{font-size:13px;font-weight:700;color:#4A4E5E;margin-bottom:8px}
+.field{height:52px;border-radius:14px;background:#fff;border:1.5px solid #DCDCE8;display:flex;align-items:center;padding:0 16px;font-size:16px}
+.field.focus{border-color:#5B5BD6;box-shadow:0 0 0 4px rgba(91,91,214,.12)}
+.ph{color:#A9ACBC}
+.btn{height:54px;border-radius:27px;background:#5B5BD6;color:#fff;font-weight:800;font-size:17px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(91,91,214,.35)}
+.btn.ghost{background:#fff;color:#5B5BD6;border:1.5px solid #CFCFF3;box-shadow:none}
+.btn.gray{background:#ECECF3;color:#4A4E5E;box-shadow:none}
+.btn.danger{background:#fff;color:#E5484D;border:1.5px solid #F5C2C4;box-shadow:none}
+.link{color:#5B5BD6;font-weight:700;font-size:14px}
+.err{color:#E5484D;font-size:13px;font-weight:600}
+.nav{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:17px;font-weight:700}
+.nav .side{width:96px;white-space:nowrap;color:#5B5BD6;font-weight:600;font-size:16px}
+.nav .side.r{text-align:right}
+.logo{font-weight:900;letter-spacing:1px;font-size:34px;color:#1F2330}
+.logo span{color:#5B5BD6}
+/* sticker */
+.st{position:absolute;border-radius:50%;border:5px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800}
+.st.sq{border-radius:28%}
+.st .t{text-shadow:0 1px 2px rgba(0,0,0,.25)}
+/* laptop */
+.lid{position:relative;border-radius:22px;background:linear-gradient(145deg,#D9DCE3 0%,#C3C7D0 45%,#B7BBC5 100%);box-shadow:inset 0 0 0 2px rgba(255,255,255,.55),0 14px 30px rgba(30,30,60,.25)}
+.lid .mark{position:absolute;left:50%;top:50%;width:38px;height:38px;transform:translate(-50%,-50%);border-radius:50%;background:rgba(255,255,255,.35)}
+.hinge{height:12px;border-radius:0 0 12px 12px;background:linear-gradient(#9EA3AE,#C9CCD4);margin:0 26px}
+/* badge */
+.hl{position:absolute;z-index:98;border:2px dashed #E0002A;border-radius:6px;pointer-events:none}
+.b{position:absolute;z-index:99;width:24px;height:24px;border-radius:50%;background:#E0002A;color:#fff;font:800 13px/24px "Helvetica Neue",Arial,sans-serif;text-align:center;box-shadow:0 0 0 2px #fff,0 2px 4px rgba(0,0,0,.3)}
+/* web */
+.web{position:relative;width:1280px;height:800px;overflow:hidden;background:#F4F5F9}
+.bar{height:36px;background:#E4E6EC;display:flex;align-items:center;padding:0 14px;gap:8px}
+.bar i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.bar .url{margin-left:18px;flex:1;height:22px;border-radius:11px;background:#fff;font-size:12px;color:#6B6F80;display:flex;align-items:center;padding-left:14px}
+.card{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(30,30,60,.08);border:1px solid #E6E7EE}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{background:#F4F5F9;color:#6B6F80;font-size:12px;text-align:left;padding:11px 14px;font-weight:700;border-bottom:1px solid #E6E7EE}
+td{padding:12px 14px;border-bottom:1px solid #EEEFF4}
+.pill{display:inline-block;padding:3px 10px;border-radius:10px;font-size:12px;font-weight:700}
+.pill.on{background:#E3F6EA;color:#1B8A4B}.pill.off{background:#FDE8E9;color:#C9363B}
+.sbtn{display:inline-block;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid #D7D8E2;background:#fff;color:#4A4E5E;margin-right:6px}
+.sbtn.red{color:#E5484D;border-color:#F5C2C4}
+.mono{font-family:Menlo,monospace;font-size:12px;color:#4A4E5E}
+</style></head><body style='width:390px;height:844px'>
+<div class='phone'><div class='status'><span>13:30</span><span class='r'>▮▮▮ ◠ ▭</span></div>
+ <div class='pad' style='padding-top:70px;text-align:center'>
+  <div data-p='1' data-o='-30,-6' style='display:inline-block;position:relative'>
+   <div style='position:relative;width:120px;height:92px;margin:0 auto 18px'>
+    <div class='st'  style='left:8px;top:6px;width:70px;height:70px;background:linear-gradient(140deg,#FF8A5B,#FF4F81);transform:rotate(-10deg);font-size:29px;'><span class='t'>B</span></div><div class='st sq'  style='left:50px;top:18px;width:66px;height:66px;background:linear-gradient(140deg,#4FC3F7,#5B5BD6);transform:rotate(10deg);font-size:27px;'><span class='t'>T</span></div>
+   </div>
+   <div class='logo'>BATT<span>ARI</span></div>
+  </div>
+  <div class='sub' style='margin-top:6px'>スマホを近づけて、ステッカーを交換しよう</div>
+ </div>
+ <div class='pad' style='margin-top:58px'>
+  <h1 style='font-size:21px'>学籍メールアドレスで登録</h1>
+  <div class='sub' data-p='2' data-a='l' style='margin:8px 0 22px;display:inline-block'>入力したアドレスに6桁の認証コードを送ります。</div>
+  <div class='label'>学籍メールアドレス</div>
+  <div style='display:flex;align-items:center;gap:8px'>
+   <div class='field focus' data-p='3' style='flex:1'>s2301234<span style='display:inline-block;width:2px;height:22px;background:#5B5BD6;margin-left:2px'></span></div>
+   <div data-p='4' data-a='tr' style='font-size:15px;font-weight:700;color:#4A4E5E'>@s.asojuku.ac.jp</div>
+  </div>
+  <div class='err' data-p='5' data-a='l' style='margin-top:10px;display:inline-block'>※ 本学の学籍メールアドレスのみ登録できます</div>
+ </div>
+ <div class='pad' style='position:absolute;bottom:56px;width:100%'>
+  <div class='btn' data-p='6'>認証コードを送信</div>
+ </div>
+ <div class='home-ind'></div>
+</div>
+<script>
+const root=document.querySelector('.phone,.web'), rr=root.getBoundingClientRect();
+document.querySelectorAll('[data-p]').forEach(el=>{
+  const r=el.getBoundingClientRect(), P=4;
+  const L=r.left-rr.left-P, T=r.top-rr.top-P, W=r.width+P*2, H=r.height+P*2;
+  const box=document.createElement('i'); box.className='hl';
+  Object.assign(box.style,{left:L+'px',top:T+'px',width:W+'px',height:H+'px'});
+  root.appendChild(box);
+  const a=el.dataset.a||'tl'; let x=L-12, y=T-12;
+  if(a==='r'){x=L+W+4; y=T+(H-24)/2;}
+  if(a==='l'){x=L-28; y=T+(H-24)/2;}
+  if(a==='tr'){x=L+W-12; y=T-12;}
+  x=Math.max(0,Math.min(x,rr.width-24)); y=Math.max(0,y);
+  const b=document.createElement('i'); b.className='b'; b.textContent=el.dataset.p;
+  b.style.left=x+'px'; b.style.top=y+'px';
+  root.appendChild(b);
+});
+</script></body></html>
