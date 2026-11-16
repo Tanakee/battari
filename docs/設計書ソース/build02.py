@@ -8,7 +8,7 @@ from PIL import Image
 sys.path.insert(0, os.path.dirname(__file__))
 from spec import *
 
-SRC = os.path.expanduser("~/Downloads/02_画面設計書(画面レイアウト).xlsx")
+SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templates", "02_画面設計書(画面レイアウト).xlsx")
 MOCK = os.path.join(os.path.dirname(__file__), "mock")
 OUT = sys.argv[1]
 EMU = 9525

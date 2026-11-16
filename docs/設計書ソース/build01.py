@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from spec import *
 from xldraw import Drawing, inject
 
-SRC = os.path.expanduser("~/Downloads/01_画面設計書(画面一覧・画面遷移図).xlsx")
+SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templates", "01_画面設計書(画面一覧・画面遷移図).xlsx")
 OUT = sys.argv[1]
 
 wb = openpyxl.load_workbook(SRC)

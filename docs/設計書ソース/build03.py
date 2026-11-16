@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from spec import SYSTEM, AUTHOR, DATE, VERSION
 from xldraw import Drawing, inject
 
-SRC = os.path.expanduser("~/Downloads/03_データベース設計書.xlsx")
+SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templates", "03_データベース設計書.xlsx")
 OUT = sys.argv[1]
 thin = Side(style="thin")
 BOX = Border(left=thin, right=thin, top=thin, bottom=thin)
@@ -57,7 +57,7 @@ ENT = [
      [("プロフィールID", "id", "UUID", "○", "UUID()", "PK"),
       ("ユーザーID", "uid", "String(128)", "○", "なし", "ログイン中のFirebase AuthのUID。交換時に相手へ送る。一意"),
       ("表示名", "displayName", "String(20)", "○", "なし", ""),
-      ("学科", "department", "String(30)", "○", "なし", "本学の学科一覧から選ぶ"),
+      ("学科", "department", "String(30)", "○", "なし", "本学の学科一覧から選ぶ（選択肢は画面レイアウトG3の学科選択を参照）"),
       ("学年", "grade", "Int", "○", "1", "1〜4"),
       ("ひとこと", "message", "String(50)", "", "空文字", "任意"),
       ("アイコン画像", "iconImage", "Data", "○", "頭文字から生成", "JPEG・256×256px（約20KB以内）。未選択時は表示名の頭文字から画像を生成して保存する"),
