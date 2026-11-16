@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BATTARI 管理画面</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <!-- W1 管理者ログイン -->
+  <main id="w1" class="screen center" hidden>
+    <form class="card auth" id="w1-form" novalidate>
+      <div class="logo">BATT<span>ARI</span> <small>Admin</small></div>
+      <h1>管理者ログイン</h1>
+      <p class="sub">登録済みの管理者メールアドレスに認証コードを送ります。</p>
+      <label class="label" for="w1-email">メールアドレス</label>
+      <input id="w1-email" class="field" type="email" maxlength="254" autocomplete="username" inputmode="email" placeholder="admin@example.com">
+      <p class="err" id="w1-error" hidden></p>
+      <button class="btn" id="w1-send" type="submit" disabled>認証コードを送信</button>
+    </form>
+  </main>
+
+  <!-- W2 管理者認証コード入力 -->
+  <main id="w2" class="screen center" hidden>
+    <form class="card auth" id="w2-form" novalidate>
+      <div class="logo">BATT<span>ARI</span> <small>Admin</small></div>
+      <h1>認証コードを入力</h1>
+      <p class="sub"><b id="w2-address" class="address"></b><br>に届いた6桁のコードを入力してください。</p>
+      <div class="code" id="w2-code"></div>
+      <p class="err" id="w2-error" hidden></p>
+      <p class="info" id="w2-info" hidden></p>
+      <button class="btn" id="w2-verify" type="submit" disabled>認証する</button>
+      <div class="links">
+        <button type="button" class="link" id="w2-back">メールアドレスを変更</button>
+        <button type="button" class="link" id="w2-resend" disabled>再送信</button>
+      </div>
+    </form>
+  </main>
+
+  <!-- W3 ユーザー管理 -->
+  <div id="w3" class="screen" hidden>
+    <header class="topbar">
+      <div class="logo small">BATT<span>ARI</span> <small>Admin</small></div>
+      <div class="me"><span id="w3-me" class="ellipsis"></span><button class="sbtn" id="w3-logout">ログアウト</button></div>
+    </header>
+    <main class="w3">
+      <div class="w3-head">
+        <h1>ユーザー管理</h1>
+        <p class="count">登録ユーザー <b id="w3-total">-</b> 人</p>
+      </div>
+      <div class="card">
+        <div class="tools">
+          <input id="w3-query" class="field search" type="search" maxlength="254" placeholder="メールアドレスで検索">
+          <div class="seg" id="w3-status" role="radiogroup" aria-label="状態で絞り込み">
+            <button type="button" data-v="all" aria-checked="true" role="radio">すべて</button>
+            <button type="button" data-v="enabled" aria-checked="false" role="radio">有効</button>
+            <button type="button" data-v="disabled" aria-checked="false" role="radio">無効</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>UID</th><th>メールアドレス</th><th>登録日時</th><th>最終ログイン日時</th><th>状態</th><th>操作</th></tr></thead>
+            <tbody id="w3-rows"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <span id="w3-range"></span>
+          <span>
+            <button class="sbtn" id="w3-prev" disabled>前へ</button>
+            <button class="sbtn" id="w3-next" disabled>次へ</button>
+          </span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="confirm" class="card">
+    <h2>アカウントを削除しますか？</h2>
+    <p><b id="confirm-email" class="address"></b></p>
+    <p class="sub">削除すると元に戻せません。</p>
+    <div class="dlg-buttons">
+      <button class="sbtn" id="confirm-cancel">キャンセル</button>
+      <button class="sbtn red" id="confirm-ok">削除する</button>
+    </div>
+  </dialog>
+
+  <div id="toast" role="status" hidden></div>
+</body>
+</html>
