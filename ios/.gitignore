@@ -1,0 +1,7 @@
+*.xcodeproj/
+DerivedData/
+build/
+xcuserdata/
+BATTARI/GoogleService-Info.plist
+BATTARI/Info.plist
+Local.xcconfig

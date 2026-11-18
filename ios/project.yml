@@ -1,0 +1,79 @@
+name: BATTARI
+options:
+  bundleIdPrefix: io.github.tanakee
+  deploymentTarget:
+    iOS: "17.0"
+  developmentLanguage: ja
+configFiles:
+  Debug: Signing.xcconfig
+  Release: Signing.xcconfig
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    from: 13.0.0
+targets:
+  BATTARI:
+    type: application
+    platform: iOS
+    sources:
+      - path: BATTARI
+        excludes: [GoogleService-Info.plist]
+    postCompileScripts:
+      # Firebaseの設定ファイルは公開リポジトリに入れないため、置いてあるときだけアプリに含める
+      - name: Copy GoogleService-Info.plist
+        basedOnDependencyAnalysis: false
+        script: |
+          SRC="$SRCROOT/BATTARI/GoogleService-Info.plist"
+          if [ -f "$SRC" ]; then
+            cp "$SRC" "$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/"
+          else
+            echo "warning: GoogleService-Info.plist がありません（Firebase未設定の画面が出ます）"
+          fi
+    dependencies:
+      - package: Firebase
+        product: FirebaseAuth
+      - package: Firebase
+        product: FirebaseFunctions
+    info:
+      path: BATTARI/Info.plist
+      properties:
+        CFBundleDisplayName: BATTARI
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        UILaunchScreen: {}
+        # 白背景前提の配色なので、ダークモードでも明るい表示に固定する
+        UIUserInterfaceStyle: Light
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIApplicationSupportsIndirectInputEvents: true
+        NSBluetoothAlwaysUsageDescription: 近くの人とプロフィールを交換するためにBluetoothを使います
+        NSCameraUsageDescription: アイコン画像を撮影するためにカメラを使います
+        NSPhotoLibraryUsageDescription: アイコン画像を選ぶために写真ライブラリを使います
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.tanakee.battari
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: NO
+  BATTARITests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [BATTARITests]
+    dependencies:
+      - target: BATTARI
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  BATTARI:
+    build:
+      targets:
+        BATTARI: all
+        BATTARITests: [test]
+    test:
+      targets: [BATTARITests]
+    run:
+      commandLineArguments:
+        "-useEmulator": false
