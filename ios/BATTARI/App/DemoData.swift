@@ -13,7 +13,8 @@ enum DemoData {
                     thumbnail: ImageTools.thumbnail(ImageTools.initialIcon(for: "佐藤")), waiting: false)
     }
 
-    /// 起動引数 -sampleStickers 2 など：端末に保存されたデータへ、交換済みのサンプルを足す。
+    /// 起動引数 -sampleStickers 2 など（最大7）：端末に保存されたデータへ、交換済みのサンプルを足す。
+    /// 新しく足した分はケースにしまわれる。
     /// UIDは固定なので、何度起動しても増えすぎない（同じ相手は上書き）
     @MainActor
     static func addSampleStickers(to container: ModelContainer) {
@@ -24,6 +25,9 @@ enum DemoData {
             ("鈴木 そうた", "ゲームクリエイター学科", 1, "Unityでゲーム作ってます"),
             ("高橋 ゆい", "CGデザイン科", 3, ""),
             ("伊藤 れん", "情報工学科", 2, "話しかけてください"),
+            ("渡辺 あおい", "情報ビジネス科", 1, "簿記の勉強中です"),
+            ("山本 はると", "電気・電子工学科", 2, ""),
+            ("中村 さくら", "CGデザイン科", 1, "イラスト描きます！"),
         ]
         for (i, (name, department, grade, message)) in samples.prefix(count).enumerated() {
             let profile = ProfilePayload(uid: "sample-\(i)", displayName: name, department: department, grade: grade, message: message)
