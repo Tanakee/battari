@@ -44,6 +44,8 @@ targets:
         CFBundleShortVersionString: "1.0"
         CFBundleVersion: "1"
         UILaunchScreen: {}
+        # 白背景前提の配色なので、ダークモードでも明るい表示に固定する
+        UIUserInterfaceStyle: Light
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIApplicationSupportsIndirectInputEvents: true
         NSBluetoothAlwaysUsageDescription: 近くの人とプロフィールを交換するためにBluetoothを使います

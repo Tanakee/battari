@@ -25,6 +25,7 @@ struct ProfileEditView: View {
     @State private var pickingPhoto = false
     @State private var usingCamera = false
     @State private var confirmDiscard = false
+    @State private var choosingDepartment = false
     @FocusState private var focus: Field?
 
     private enum Field { case name, message }
@@ -60,26 +61,22 @@ struct ProfileEditView: View {
                     ErrorText(text: showErrors && !nameValid ? "入力してください" : nil).padding(.top, 6)
 
                     FieldLabel(text: "学科", required: true).padding(.top, 20).padding(.bottom, 8)
-                    Menu {
-                        ForEach(Departments.all, id: \.self) { name in
-                            Button(name) { department = name }
-                        }
-                    } label: {
+                    // Menu は選んだあとにラベルが揺れるアニメーションが入るので、シートで選ばせる
+                    Button { choosingDepartment = true } label: {
                         HStack {
                             Text(department ?? "選択してください")
                                 .foregroundStyle(department == nil ? Color(hex: 0xA9ACBC) : Theme.ink)
                             Spacer()
-                            Image(systemName: "chevron.up.chevron.down").foregroundStyle(Theme.sub)
+                            Image(systemName: "chevron.down").foregroundStyle(Theme.sub)
                         }
                         .fieldStyle(focused: false, error: showErrors && department == nil)
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
                     ErrorText(text: showErrors && department == nil ? "入力してください" : nil).padding(.top, 6)
 
                     FieldLabel(text: "学年", required: true).padding(.top, 20).padding(.bottom, 8)
-                    Picker("学年", selection: $grade) {
-                        ForEach(Array(Limits.grades), id: \.self) { Text("\($0)年").tag($0) }
-                    }
-                    .pickerStyle(.segmented)
+                    GradeSelector(grade: $grade)
 
                     FieldLabel(text: "ひとこと").padding(.top, 20).padding(.bottom, 8)
                     VStack(alignment: .trailing, spacing: 4) {
@@ -130,6 +127,11 @@ struct ProfileEditView: View {
                 if let image { icon = ImageTools.iconJPEG(from: image) }
             }
             .ignoresSafeArea()
+        }
+        .sheet(isPresented: $choosingDepartment) {
+            DepartmentSheet(selection: $department)
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
         }
         .alert("変更を破棄しますか？", isPresented: $confirmDiscard) {
             Button("キャンセル", role: .cancel) {}
@@ -215,6 +217,74 @@ struct ProfileEditView: View {
             dismiss()
         }
         try? context.save()
+    }
+}
+
+/// 学年の選択。標準のセグメントはガラス表現で文字が読みにくいため、自前のボタンで並べる
+private struct GradeSelector: View {
+    @Binding var grade: Int
+
+    var body: some View {
+        HStack(spacing: 8) {
+            ForEach(Array(Limits.grades), id: \.self) { value in
+                let selected = value == grade
+                Button { grade = value } label: {
+                    Text("\(value)年")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(selected ? .white : Theme.label)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                        .background(selected ? Theme.accent : Color.white, in: RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(selected ? Color.clear : Theme.fieldBorder, lineWidth: 1.5))
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(selected ? .isSelected : [])
+            }
+        }
+    }
+}
+
+/// 学科の選択シート
+private struct DepartmentSheet: View {
+    @Binding var selection: String?
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("学科を選択")
+                .font(.system(size: 17, weight: .bold))
+                .foregroundStyle(Theme.ink)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 20)
+                .padding(.bottom, 12)
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(Departments.all, id: \.self) { name in
+                        Button {
+                            selection = name
+                            dismiss()
+                        } label: {
+                            HStack {
+                                Text(name)
+                                    .font(.system(size: 16, weight: selection == name ? .bold : .regular))
+                                    .foregroundStyle(Theme.ink)
+                                Spacer()
+                                if selection == name {
+                                    Image(systemName: "checkmark").font(.system(size: 15, weight: .bold)).foregroundStyle(Theme.accent)
+                                }
+                            }
+                            .padding(.horizontal, 24)
+                            .frame(height: 52)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        Divider().padding(.leading, 24)
+                    }
+                }
+            }
+        }
+        .background(Theme.background.ignoresSafeArea())
     }
 }
 
