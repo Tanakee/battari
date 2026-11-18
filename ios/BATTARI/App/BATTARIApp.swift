@@ -17,6 +17,9 @@ struct BATTARIApp: App {
         #endif
         _auth = StateObject(wrappedValue: AuthService(configured: AuthService.configureFirebase()))
         container = try! ModelContainer(for: MyProfile.self, Sticker.self)
+        #if DEBUG
+        DemoData.addSampleStickers(to: container)
+        #endif
     }
 
     var body: some Scene {

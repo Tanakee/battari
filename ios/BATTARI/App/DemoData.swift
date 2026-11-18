@@ -13,6 +13,25 @@ enum DemoData {
                     thumbnail: ImageTools.thumbnail(ImageTools.initialIcon(for: "佐藤")), waiting: false)
     }
 
+    /// 起動引数 -sampleStickers 2 など：端末に保存されたデータへ、交換済みのサンプルを足す。
+    /// UIDは固定なので、何度起動しても増えすぎない（同じ相手は上書き）
+    @MainActor
+    static func addSampleStickers(to container: ModelContainer) {
+        let count = UserDefaults.standard.integer(forKey: "sampleStickers")
+        guard count > 0 else { return }
+        let samples: [(String, String, Int, String)] = [
+            ("佐藤 みく", "情報システム専攻科", 2, "よろしくお願いします！"),
+            ("鈴木 そうた", "ゲームクリエイター学科", 1, "Unityでゲーム作ってます"),
+            ("高橋 ゆい", "CGデザイン科", 3, ""),
+            ("伊藤 れん", "情報工学科", 2, "話しかけてください"),
+        ]
+        for (i, (name, department, grade, message)) in samples.prefix(count).enumerated() {
+            let profile = ProfilePayload(uid: "sample-\(i)", displayName: name, department: department, grade: grade, message: message)
+            _ = try? StickerStore.saveReceived(profile, icon: ImageTools.initialIcon(for: name), in: container.mainContext)
+        }
+        try? container.mainContext.save()
+    }
+
     @MainActor
     static func container() -> ModelContainer {
         let container = try! ModelContainer(for: MyProfile.self, Sticker.self,

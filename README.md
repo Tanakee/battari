@@ -82,6 +82,7 @@ cd ios && xcodegen generate && open BATTARI.xcodeproj
 | Functions のテスト | `cd functions && npm test` |
 | iOS のテスト | `cd ios && xcodebuild test -project BATTARI.xcodeproj -scheme BATTARI -destination 'platform=iOS Simulator,name=iPhone 17 Pro'` |
 | エミュレータ（要Java） | `firebase emulators:start --only functions,firestore,auth,hosting`。iOSは起動引数 `-useEmulator YES` でつなぐ。SendGridのキーがなければ認証コードはFunctionsのログに出る |
+| 実機にサンプルのステッカーを足す（DEBUGのみ） | 起動引数 `-sampleStickers 2`（1〜4）。`xcrun devicectl device process launch --device <ID> io.github.tanakee.battari -- -sampleStickers 2` でも可 |
 | 画面だけ確認（DEBUGのみ） | iOSの起動引数 `-demo YES`（サンプルデータで起動）、`-demoScreen G3` などで指定の画面を開く |
 
 ## ドキュメント（`docs/`）
