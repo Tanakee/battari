@@ -23,8 +23,13 @@ struct StickerImage: View {
         .frame(width: size, height: size)
         .clipShape(shape)
         .overlay(shape.stroke(Color.white, lineWidth: border))
-        .shadow(color: .black.opacity(lifted ? 0.35 : 0.28), radius: lifted ? 12 : 4, y: lifted ? 8 : 3)
-        .scaleEffect(lifted ? 1.08 : 1)
+        // 持ち上げ・置くときは影と大きさだけ動かす。画像まで含めてアニメーションさせると、
+        // 描き直した画像がクロスフェードして一瞬半透明に見える
+        .animation(.spring(duration: 0.2)) { content in
+            content
+                .shadow(color: .black.opacity(lifted ? 0.35 : 0.28), radius: lifted ? 12 : 4, y: lifted ? 8 : 3)
+                .scaleEffect(lifted ? 1.08 : 1)
+        }
     }
 }
 
@@ -79,7 +84,6 @@ struct StickerCanvas: View {
                 let dragging = drag?.id == sticker.id
                 let p = position(of: sticker, moved: dragging ? drag?.translation ?? .zero : .zero)
                 StickerImage(image: sticker.iconImage, shapeKey: sticker.partnerUid, size: side, lifted: dragging)
-                    .animation(.spring(duration: 0.2), value: dragging)
                     .rotationEffect(.degrees(sticker.rotation))
                     .position(x: p.x * size.width, y: p.y * size.height)
                     .zIndex(dragging ? 10_000 : Double(sticker.zIndex))
