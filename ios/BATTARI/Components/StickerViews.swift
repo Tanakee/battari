@@ -64,18 +64,24 @@ struct StickerCanvas: View {
     var onMove: ((Sticker, Double, Double) -> Void)?
     var hidden: Set<UUID> = []
 
-    @State private var draggingId: UUID?
-    @State private var dragOffset: CGSize = .zero
+    /// 長押しで持ち上げてから指を離すまでの状態。ジェスチャーが終わる・中断されると自動で nil に戻る
+    @GestureState private var drag: Drag?
+
+    private struct Drag: Equatable {
+        let id: UUID
+        var translation: CGSize
+    }
 
     var body: some View {
         let side = size.width * StickerLayout.stickerSize
         ForEach(stickers.sorted { $0.zIndex < $1.zIndex }) { sticker in
             if !hidden.contains(sticker.id) {
-                let dragging = draggingId == sticker.id
+                let dragging = drag?.id == sticker.id
+                let p = position(of: sticker, moved: dragging ? drag?.translation ?? .zero : .zero)
                 StickerImage(image: sticker.iconImage, shapeKey: sticker.partnerUid, size: side, lifted: dragging)
+                    .animation(.spring(duration: 0.2), value: dragging)
                     .rotationEffect(.degrees(sticker.rotation))
-                    .position(x: sticker.positionX * size.width, y: sticker.positionY * size.height)
-                    .offset(dragging ? dragOffset : .zero)
+                    .position(x: p.x * size.width, y: p.y * size.height)
                     .zIndex(dragging ? 10_000 : Double(sticker.zIndex))
                     .onTapGesture { onTap?(sticker) }
                     .gesture(moveGesture(for: sticker), including: onMove == nil ? .none : .all)
@@ -83,31 +89,36 @@ struct StickerCanvas: View {
                     .accessibilityAddTraits(.isButton)
             }
         }
+        .sensoryFeedback(.impact(weight: .light), trigger: drag?.id) { _, new in new != nil }
+    }
+
+    /// 指の移動量を足した位置。天板からはみ出さないよう、動かしている最中も範囲内に収める
+    private func position(of sticker: Sticker, moved: CGSize) -> (x: Double, y: Double) {
+        StickerLayout.clamp(x: sticker.positionX + moved.width / size.width,
+                            y: sticker.positionY + moved.height / size.height)
     }
 
     private func moveGesture(for sticker: Sticker) -> some Gesture {
+        // 持ち上げた直後から指に追従させるため、DragGesture の最小移動量は 0 にする
         LongPressGesture(minimumDuration: 0.35)
-            .sequenced(before: DragGesture())
-            .onChanged { value in
+            .sequenced(before: DragGesture(minimumDistance: 0))
+            .updating($drag) { value, state, _ in
                 switch value {
                 case .first(true):
-                    withAnimation(.spring(duration: 0.2)) { draggingId = sticker.id }
-                case let .second(true, drag?):
-                    draggingId = sticker.id
-                    dragOffset = drag.translation
-                default: break
+                    state = Drag(id: sticker.id, translation: .zero)
+                case let .second(true, d):
+                    state = Drag(id: sticker.id, translation: d?.translation ?? .zero)
+                default:
+                    break
                 }
             }
             .onEnded { value in
-                if case let .second(true, drag?) = value {
-                    let x = sticker.positionX + drag.translation.width / size.width
-                    let y = sticker.positionY + drag.translation.height / size.height
-                    onMove?(sticker, x, y)
-                }
-                withAnimation(.spring(duration: 0.2)) {
-                    draggingId = nil
-                    dragOffset = .zero
-                }
+                guard case let .second(true, d?) = value else { return }
+                let p = position(of: sticker, moved: d.translation)
+                // 離した位置にそのまま置く（アニメーションさせると一度ずれてから戻って見える）
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) { onMove?(sticker, p.x, p.y) }
             }
     }
 }
