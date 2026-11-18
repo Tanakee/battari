@@ -44,7 +44,7 @@ final class Sticker {
     /// 度。±15度
     var rotation: Double
     var zIndex: Int
-    /// 天板に貼っているか。false なら一覧（G9）にしまってある。位置・角度は次に貼るときの目安として残す
+    /// 天板に貼っているか。false ならステッカーケース（G4）にしまってある。位置・角度は次に貼るときの目安として残す
     var isPlaced: Bool = true
 
     init(partnerUid: String, displayName: String, department: String, grade: Int, message: String,

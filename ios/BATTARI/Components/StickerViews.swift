@@ -68,6 +68,8 @@ struct StickerCanvas: View {
     var onTap: ((Sticker) -> Void)?
     var onMove: ((Sticker, Double, Double) -> Void)?
     var hidden: Set<UUID> = []
+    /// ステッカーケースとのあいだで移る動きに使う（G4のみ）
+    var namespace: Namespace.ID?
 
     /// 長押しで持ち上げてから指を離すまでの状態。ジェスチャーが終わる・中断されると自動で nil に戻る
     @GestureState private var drag: Drag?
@@ -85,6 +87,7 @@ struct StickerCanvas: View {
                 let p = position(of: sticker, moved: dragging ? drag?.translation ?? .zero : .zero)
                 StickerImage(image: sticker.iconImage, shapeKey: sticker.partnerUid, size: side, lifted: dragging)
                     .rotationEffect(.degrees(sticker.rotation))
+                    .matchedSticker(sticker.id, in: namespace)
                     .position(x: p.x * size.width, y: p.y * size.height)
                     .zIndex(dragging ? 10_000 : Double(sticker.zIndex))
                     .onTapGesture { onTap?(sticker) }
@@ -124,5 +127,17 @@ struct StickerCanvas: View {
                 transaction.disablesAnimations = true
                 withTransaction(transaction) { onMove?(sticker, p.x, p.y) }
             }
+    }
+}
+
+extension View {
+    /// ケースと天板で同じステッカーを結びつけ、移るときに飛んでいくように見せる
+    @ViewBuilder
+    func matchedSticker(_ id: UUID, in namespace: Namespace.ID?) -> some View {
+        if let namespace {
+            matchedGeometryEffect(id: id, in: namespace)
+        } else {
+            self
+        }
     }
 }

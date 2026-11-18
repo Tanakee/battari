@@ -1,7 +1,7 @@
 import SwiftData
 import SwiftUI
 
-/// G5（交換待機）→ G6（交換確認）→ G7（貼るか一覧にしまうかを選ぶ）
+/// G5（交換待機）→ G6（交換確認）→ G7（貼るかケースにしまうかを選ぶ）
 struct ExchangeFlowView: View {
     let profile: MyProfile
     @EnvironmentObject private var auth: AuthService
@@ -263,7 +263,7 @@ struct PlaceStickerView: View {
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .padding(.top, 6)
-            Text("ドラッグして貼る場所を決めよう。あとで一覧から貼ってもOK")
+            Text("ドラッグして貼る場所を決めよう。ケースにしまってあとで貼ってもOK")
                 .font(.system(size: 14))
                 .foregroundStyle(Theme.sub)
                 .padding(.top, 6)
@@ -281,7 +281,7 @@ struct PlaceStickerView: View {
                 onFinish()
             }
             .buttonStyle(PillButtonStyle())
-            Button("一覧にしまう") {
+            Button("ケースにしまう") {
                 StickerStore.unplace(sticker, in: context)
                 onFinish()
             }

@@ -4,7 +4,7 @@ import SwiftData
 /// G8で選べる操作
 enum StickerAction { case place, unplace, delete }
 
-/// ステッカーの保存・天板への貼り付け・一覧へしまう・削除
+/// ステッカーの保存・天板への貼り付け・ケースへしまう・削除
 @MainActor
 enum StickerStore {
     /// 交換で受け取ったプロフィールを保存する。同じ相手なら上書きする。
@@ -62,7 +62,7 @@ enum StickerStore {
         try? context.save()
     }
 
-    /// 一覧（G9）から貼る。空いている位置に置く。位置はG4で長押しして動かせる
+    /// ステッカーケースから貼る。空いている位置に置く。位置はG4で長押しして動かせる
     static func placeAtFreeSpot(_ sticker: Sticker, in context: ModelContext) {
         var rng = SystemRandomNumberGenerator()
         let all = (try? context.fetch(FetchDescriptor<Sticker>())) ?? []
@@ -70,7 +70,7 @@ enum StickerStore {
         place(sticker, x: spot.x, y: spot.y, in: context)
     }
 
-    /// 天板からはがして一覧にしまう（ステッカーは残る）
+    /// 天板からはがしてケースにしまう（ステッカーは残る）
     static func unplace(_ sticker: Sticker, in context: ModelContext) {
         sticker.isPlaced = false
         try? context.save()

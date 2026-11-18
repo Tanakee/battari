@@ -8,13 +8,17 @@ struct HomeView: View {
     @Query(sort: \Sticker.zIndex) private var stickers: [Sticker]
     @State private var editing = false
     @State private var exchanging = false
-    @State private var listing = false
+    /// ステッカーケースを開いているか
+    @State private var caseOpen = false
+    /// ケースと天板のあいだでステッカーが移る動き
+    @Namespace private var stickerSpace
     @State private var selected: Sticker?
     /// G8で選んだ操作。シートを閉じてから反映する（表示中のステッカーを消すと落ちるため）
     @State private var pending: (Sticker, StickerAction)?
 
     private var placed: [Sticker] { stickers.filter(\.isPlaced) }
-    private var storedCount: Int { stickers.count - placed.count }
+    /// ケースにしまってあるステッカー（新しく交換した順）
+    private var stored: [Sticker] { stickers.filter { !$0.isPlaced }.sorted { $0.exchangedAt > $1.exchangedAt } }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -40,9 +44,10 @@ struct HomeView: View {
             LaptopLid { size in
                 StickerCanvas(stickers: placed, size: size,
                               onTap: { selected = $0 },
-                              onMove: { sticker, x, y in StickerStore.place(sticker, x: x, y: y, in: context) })
+                              onMove: { sticker, x, y in StickerStore.place(sticker, x: x, y: y, in: context) },
+                              namespace: stickerSpace)
                 if placed.isEmpty {
-                    Text(stickers.isEmpty ? "まだステッカーがありません\n近くの人と交換してみよう" : "ステッカー一覧から\n貼りたいステッカーを選ぼう")
+                    Text(stickers.isEmpty ? "まだステッカーがありません\n近くの人と交換してみよう" : "ステッカーケースから\n貼りたいステッカーを選ぼう")
                         .font(.system(size: 14, weight: .semibold))
                         .multilineTextAlignment(.center)
                         .foregroundStyle(Theme.label.opacity(0.7))
@@ -51,35 +56,14 @@ struct HomeView: View {
             .padding(.top, 16)
             .padding(.horizontal, 4)
 
-            HStack {
-                Text("タップで詳細・長押しで移動")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Theme.sub)
-                Spacer()
-                Button { listing = true } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "square.grid.2x2.fill")
-                        Text("ステッカー一覧")
-                        if storedCount > 0 {
-                            Text("\(storedCount)")
-                                .font(.system(size: 12, weight: .heavy))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 7)
-                                .frame(minWidth: 20, minHeight: 20)
-                                .background(Theme.accent, in: Capsule())
-                        }
-                    }
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(Theme.accent)
-                    .padding(.horizontal, 12)
-                    .frame(height: 36)
-                    .background(Color.white, in: Capsule())
-                    .overlay(Capsule().strokeBorder(Color(hex: 0xCFCFF3), lineWidth: 1.5))
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(storedCount > 0 ? "ステッカー一覧（貼っていないステッカー\(storedCount)枚）" : "ステッカー一覧")
-            }
-            .padding(.top, 12)
+            StickerCaseBar(stickers: stored, open: $caseOpen, namespace: stickerSpace,
+                           onPlace: { sticker in
+                               withAnimation(.spring(duration: 0.45, bounce: 0.2)) {
+                                   StickerStore.placeAtFreeSpot(sticker, in: context)
+                               }
+                           },
+                           onDetail: { selected = $0 })
+                .padding(.top, 14)
 
             Spacer(minLength: 12)
             Button { exchanging = true } label: {
@@ -102,17 +86,14 @@ struct HomeView: View {
             case "G3": editing = true
             case "G5", "G6", "G7": exchanging = true
             case "G8": selected = placed.first
-            case "G9": listing = true
+            case "case": caseOpen = true
             default: break
             }
         }
         #endif
-        .sheet(isPresented: $listing) {
-            StickerListView()
-        }
         .sheet(item: $selected, onDismiss: {
             if let (sticker, action) = pending {
-                withAnimation { StickerStore.apply(action, to: sticker, in: context) }
+                withAnimation(.spring(duration: 0.45, bounce: 0.2)) { StickerStore.apply(action, to: sticker, in: context) }
                 pending = nil
             }
         }) { sticker in
@@ -181,7 +162,7 @@ struct StickerDetailView: View {
 
             Spacer()
             if sticker.isPlaced {
-                Button("天板からはがす") { finish(.unplace) }
+                Button("はがしてケースにしまう") { finish(.unplace) }
                     .buttonStyle(PillButtonStyle(kind: .gray))
             } else {
                 Button("天板に貼る") { finish(.place) }
@@ -199,7 +180,7 @@ struct StickerDetailView: View {
             Button("キャンセル", role: .cancel) {}
             Button("削除する", role: .destructive) { finish(.delete) }
         } message: {
-            Text("削除すると元に戻せません。はがすだけなら一覧に残ります")
+            Text("削除すると元に戻せません。はがすだけならケースに残ります")
         }
     }
 
