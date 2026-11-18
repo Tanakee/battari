@@ -1,0 +1,4 @@
+// 署名の設定。チームIDは公開しないため Local.xcconfig（.gitignore 済み）に書く
+// 例: DEVELOPMENT_TEAM = ABCDE12345
+CODE_SIGN_STYLE = Automatic
+#include? "Local.xcconfig"

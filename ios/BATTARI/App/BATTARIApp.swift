@@ -79,6 +79,10 @@ struct SignedInView: View {
 }
 
 struct NotConfiguredView: View {
+    #if DEBUG
+    @EnvironmentObject private var auth: AuthService
+    #endif
+
     var body: some View {
         VStack(spacing: 16) {
             Logo()
@@ -88,6 +92,15 @@ struct NotConfiguredView: View {
                 .font(.subheadline)
                 .foregroundStyle(Theme.sub)
                 .multilineTextAlignment(.center)
+            #if DEBUG
+            Button("ログインせずに試す") { auth.startTrial() }
+                .buttonStyle(PillButtonStyle())
+                .padding(.top, 24)
+            Text("開発用です。認証を飛ばして、プロフィール作成とBLEでの交換を試せます。データはこの端末に保存されます。")
+                .font(.footnote)
+                .foregroundStyle(Theme.sub)
+                .multilineTextAlignment(.center)
+            #endif
         }
         .padding(32)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

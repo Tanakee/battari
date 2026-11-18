@@ -62,7 +62,18 @@ cd ios && xcodegen generate && open BATTARI.xcodeproj
 ```
 
 - Firebaseコンソールで iOS アプリ（バンドルID `io.github.tanakee.battari`）を追加し、`GoogleService-Info.plist` を `ios/BATTARI/` に置く（公開しないため `.gitignore` 済み）
-- BLEはシミュレータで動かないので、**実機2台**で試す。Signing の Team を自分のものにする
+- BLEはシミュレータで動かないので、**実機2台**で試す
+
+### 実機で動かす
+
+1. `ios/Local.xcconfig` を作り、自分のチームIDを書く（`.gitignore` 済み）。チームIDは Xcode の Settings → Accounts で確認できる
+   ```
+   DEVELOPMENT_TEAM = ABCDE12345
+   ```
+2. `cd ios && xcodegen generate && open BATTARI.xcodeproj` で開き、iPhoneを選んで実行する
+3. iPhone側で「設定 → 一般 → VPNとデバイス管理」から開発元を信頼する（初回のみ）
+
+`GoogleService-Info.plist` を置いていなくても、DEBUGビルドなら最初の画面の **「ログインせずに試す」** で認証を飛ばせる。プロフィール作成・ステッカー台紙・BLEでの交換を、Firebaseなしで試せる（UIDは端末ごとにランダム、データは端末に保存）。
 
 ## 開発
 

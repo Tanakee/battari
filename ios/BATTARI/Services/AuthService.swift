@@ -25,7 +25,7 @@ final class AuthService: ObservableObject {
 
     @Published private(set) var state: State = .loading
     private var listener: AuthStateDidChangeListenerHandle?
-    /// デモモード（DEBUGのみ）。Firebaseを使わずにログイン済みとして扱う
+    /// デモモード・お試しモード（DEBUGのみ）。Firebaseを使わずにログイン済みとして扱う
     private var demo = false
     private let region = "asia-northeast1"
 
@@ -44,6 +44,12 @@ final class AuthService: ObservableObject {
     init(configured: Bool) {
         guard configured else {
             state = .notConfigured
+            #if DEBUG
+            if let uid = UserDefaults.standard.string(forKey: Self.trialUidKey) {
+                demo = true
+                state = .signedIn(uid: uid)
+            }
+            #endif
             return
         }
         listener = Auth.auth().addStateDidChangeListener { [weak self] _, user in
@@ -57,6 +63,17 @@ final class AuthService: ObservableObject {
     init(demoUid: String) {
         demo = true
         state = .signedIn(uid: demoUid)
+    }
+
+    private static let trialUidKey = "trialUid"
+
+    /// お試しモード：Firebase未設定のまま、実機でプロフィール作成とBLE交換を試す。
+    /// UIDは端末ごとにランダムに作り、次回の起動でも同じものを使う
+    func startTrial() {
+        let uid = "trial-" + UUID().uuidString.lowercased()
+        UserDefaults.standard.set(uid, forKey: Self.trialUidKey)
+        demo = true
+        state = .signedIn(uid: uid)
     }
     #endif
 
