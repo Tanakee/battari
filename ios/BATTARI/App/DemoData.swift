@@ -44,7 +44,9 @@ enum DemoData {
         for (i, name) in names.enumerated() {
             let profile = ProfilePayload(uid: "demo-\(i)", displayName: name, department: Departments.all[i % Departments.all.count],
                                          grade: i % 4 + 1, message: i % 2 == 0 ? "よろしくお願いします！" : "")
-            _ = try? StickerStore.saveReceived(profile, icon: ImageTools.initialIcon(for: name), in: context)
+            if let sticker = try? StickerStore.saveReceived(profile, icon: ImageTools.initialIcon(for: name), in: context), i < 6 {
+                StickerStore.placeAtFreeSpot(sticker, in: context) // 残りの2枚は一覧にしまっておく
+            }
         }
         return container
     }

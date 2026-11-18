@@ -8,9 +8,13 @@ struct HomeView: View {
     @Query(sort: \Sticker.zIndex) private var stickers: [Sticker]
     @State private var editing = false
     @State private var exchanging = false
+    @State private var listing = false
     @State private var selected: Sticker?
-    /// G8で「はがす」を選んだステッカー。シートを閉じてから削除する
-    @State private var peeling: Sticker?
+    /// G8で選んだ操作。シートを閉じてから反映する（表示中のステッカーを消すと落ちるため）
+    @State private var pending: (Sticker, StickerAction)?
+
+    private var placed: [Sticker] { stickers.filter(\.isPlaced) }
+    private var storedCount: Int { stickers.count - placed.count }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -34,11 +38,11 @@ struct HomeView: View {
             .padding(.top, 8)
 
             LaptopLid { size in
-                StickerCanvas(stickers: stickers, size: size,
+                StickerCanvas(stickers: placed, size: size,
                               onTap: { selected = $0 },
                               onMove: { sticker, x, y in StickerStore.place(sticker, x: x, y: y, in: context) })
-                if stickers.isEmpty {
-                    Text("まだステッカーがありません\n近くの人と交換してみよう")
+                if placed.isEmpty {
+                    Text(stickers.isEmpty ? "まだステッカーがありません\n近くの人と交換してみよう" : "ステッカー一覧から\n貼りたいステッカーを選ぼう")
                         .font(.system(size: 14, weight: .semibold))
                         .multilineTextAlignment(.center)
                         .foregroundStyle(Theme.label.opacity(0.7))
@@ -47,11 +51,35 @@ struct HomeView: View {
             .padding(.top, 16)
             .padding(.horizontal, 4)
 
-            Text("ステッカーをタップで詳細・長押しで移動")
-                .font(.system(size: 13))
-                .foregroundStyle(Theme.sub)
-                .frame(maxWidth: .infinity)
-                .padding(.top, 12)
+            HStack {
+                Text("タップで詳細・長押しで移動")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.sub)
+                Spacer()
+                Button { listing = true } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "square.grid.2x2.fill")
+                        Text("ステッカー一覧")
+                        if storedCount > 0 {
+                            Text("\(storedCount)")
+                                .font(.system(size: 12, weight: .heavy))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 7)
+                                .frame(minWidth: 20, minHeight: 20)
+                                .background(Theme.accent, in: Capsule())
+                        }
+                    }
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(Theme.accent)
+                    .padding(.horizontal, 12)
+                    .frame(height: 36)
+                    .background(Color.white, in: Capsule())
+                    .overlay(Capsule().strokeBorder(Color(hex: 0xCFCFF3), lineWidth: 1.5))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(storedCount > 0 ? "ステッカー一覧（貼っていないステッカー\(storedCount)枚）" : "ステッカー一覧")
+            }
+            .padding(.top, 12)
 
             Spacer(minLength: 12)
             Button { exchanging = true } label: {
@@ -73,18 +101,22 @@ struct HomeView: View {
             switch DemoData.screen {
             case "G3": editing = true
             case "G5", "G6", "G7": exchanging = true
-            case "G8": selected = stickers.first
+            case "G8": selected = placed.first
+            case "G9": listing = true
             default: break
             }
         }
         #endif
+        .sheet(isPresented: $listing) {
+            StickerListView()
+        }
         .sheet(item: $selected, onDismiss: {
-            if let peeling {
-                withAnimation { StickerStore.peel(peeling, in: context) }
-                self.peeling = nil
+            if let (sticker, action) = pending {
+                withAnimation { StickerStore.apply(action, to: sticker, in: context) }
+                pending = nil
             }
         }) { sticker in
-            StickerDetailView(sticker: sticker) { peeling = sticker }
+            StickerDetailView(sticker: sticker) { pending = (sticker, $0) }
         }
     }
 }
@@ -92,9 +124,10 @@ struct HomeView: View {
 /// G8 ステッカー詳細
 struct StickerDetailView: View {
     let sticker: Sticker
-    let onPeel: () -> Void
+    /// 選んだ操作。呼び出し側がシートを閉じたあとで反映する
+    let onAction: (StickerAction) -> Void
     @Environment(\.dismiss) private var dismiss
-    @State private var confirmPeel = false
+    @State private var confirmDelete = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -147,21 +180,31 @@ struct StickerDetailView: View {
             .padding(.top, 20)
 
             Spacer()
-            Button("ステッカーをはがす") { confirmPeel = true }
+            if sticker.isPlaced {
+                Button("天板からはがす") { finish(.unplace) }
+                    .buttonStyle(PillButtonStyle(kind: .gray))
+            } else {
+                Button("天板に貼る") { finish(.place) }
+                    .buttonStyle(PillButtonStyle())
+            }
+            Button("ステッカーを削除") { confirmDelete = true }
                 .buttonStyle(PillButtonStyle(kind: .danger))
+                .padding(.top, 12)
                 .padding(.bottom, 12)
         }
         .padding(.horizontal, 24)
         .background(Theme.background.ignoresSafeArea())
         .presentationDragIndicator(.visible)
-        .alert("\(sticker.displayName)さんのステッカーをはがしますか？", isPresented: $confirmPeel) {
+        .alert("\(sticker.displayName)さんのステッカーを削除しますか？", isPresented: $confirmDelete) {
             Button("キャンセル", role: .cancel) {}
-            Button("はがす", role: .destructive) {
-                onPeel()
-                dismiss()
-            }
+            Button("削除する", role: .destructive) { finish(.delete) }
         } message: {
-            Text("はがすと元に戻せません")
+            Text("削除すると元に戻せません。はがすだけなら一覧に残ります")
         }
+    }
+
+    private func finish(_ action: StickerAction) {
+        onAction(action)
+        dismiss()
     }
 }

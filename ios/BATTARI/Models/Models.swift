@@ -25,7 +25,8 @@ final class MyProfile {
     }
 }
 
-/// 交換した相手のステッカー（交換時点のプロフィールと貼り付け位置）
+/// 交換した相手のステッカー（交換時点のプロフィールと貼り付け位置）。
+/// 持っているステッカーのうち、isPlaced のものだけを天板に貼る
 @Model
 final class Sticker {
     var id: UUID
@@ -43,9 +44,11 @@ final class Sticker {
     /// 度。±15度
     var rotation: Double
     var zIndex: Int
+    /// 天板に貼っているか。false なら一覧（G9）にしまってある。位置・角度は次に貼るときの目安として残す
+    var isPlaced: Bool = true
 
     init(partnerUid: String, displayName: String, department: String, grade: Int, message: String,
-         iconImage: Data, positionX: Double, positionY: Double, rotation: Double, zIndex: Int) {
+         iconImage: Data, positionX: Double, positionY: Double, rotation: Double, zIndex: Int, isPlaced: Bool) {
         self.id = UUID()
         self.partnerUid = partnerUid
         self.displayName = displayName
@@ -58,6 +61,7 @@ final class Sticker {
         self.positionY = positionY
         self.rotation = rotation
         self.zIndex = zIndex
+        self.isPlaced = isPlaced
     }
 }
 

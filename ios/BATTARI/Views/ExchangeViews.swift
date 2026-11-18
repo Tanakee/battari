@@ -1,28 +1,21 @@
 import SwiftData
 import SwiftUI
 
-/// G5（交換待機）→ G6（交換確認）→ G7（ステッカー貼り付け）
+/// G5（交換待機）→ G6（交換確認）→ G7（貼るか一覧にしまうかを選ぶ）
 struct ExchangeFlowView: View {
     let profile: MyProfile
     @EnvironmentObject private var auth: AuthService
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     @StateObject private var manager = ExchangeManager()
-    /// G7で貼る、受け取ったばかりのステッカー
+    /// G7で扱う、受け取ったばかりのステッカー
     @State private var placing: Sticker?
     @State private var saveError: String?
 
     var body: some View {
         Group {
             if let placing {
-                PlaceStickerView(sticker: placing) { continueExchange in
-                    if continueExchange {
-                        self.placing = nil
-                        manager.resume()
-                    } else {
-                        close()
-                    }
-                }
+                PlaceStickerView(sticker: placing, onFinish: close)
                 .transition(.move(edge: .bottom))
             } else {
                 switch manager.phase {
@@ -251,10 +244,10 @@ struct ConfirmView: View {
 
 struct PlaceStickerView: View {
     let sticker: Sticker
-    /// true: 貼って続けて交換（G5へ）／false: ここに貼る（G4へ）
-    let onFinish: (_ continueExchange: Bool) -> Void
+    /// 貼る・しまうのどちらでもG4へ戻る
+    let onFinish: () -> Void
     @Environment(\.modelContext) private var context
-    @Query(sort: \Sticker.zIndex) private var stickers: [Sticker]
+    @Query(filter: #Predicate<Sticker> { $0.isPlaced }, sort: \Sticker.zIndex) private var stickers: [Sticker]
     @State private var drag: CGSize = .zero
     @State private var dragging = false
 
@@ -270,7 +263,7 @@ struct PlaceStickerView: View {
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .padding(.top, 6)
-            Text("好きな場所にドラッグして貼ろう")
+            Text("ドラッグして貼る場所を決めよう。あとで一覧から貼ってもOK")
                 .font(.system(size: 14))
                 .foregroundStyle(Theme.sub)
                 .padding(.top, 6)
@@ -283,10 +276,16 @@ struct PlaceStickerView: View {
             .padding(.horizontal, 4)
 
             Spacer(minLength: 12)
-            Button("ここに貼る") { finish(continueExchange: false) }
-                .buttonStyle(PillButtonStyle())
-            Button("貼って続けて交換") { finish(continueExchange: true) }
-                .buttonStyle(PillButtonStyle(kind: .ghost))
+            Button("ここに貼る") {
+                StickerStore.place(sticker, x: sticker.positionX, y: sticker.positionY, in: context)
+                onFinish()
+            }
+            .buttonStyle(PillButtonStyle())
+            Button("一覧にしまう") {
+                StickerStore.unplace(sticker, in: context)
+                onFinish()
+            }
+            .buttonStyle(PillButtonStyle(kind: .ghost))
                 .padding(.top, 12)
                 .padding(.bottom, 12)
         }
@@ -327,10 +326,5 @@ struct PlaceStickerView: View {
                 .accessibilityLabel("新しいステッカー。ドラッグして位置を決めます")
         }
         .zIndex(100_000)
-    }
-
-    private func finish(continueExchange: Bool) {
-        StickerStore.place(sticker, x: sticker.positionX, y: sticker.positionY, in: context)
-        onFinish(continueExchange)
     }
 }

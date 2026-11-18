@@ -65,14 +65,14 @@ final class StickerStoreTests: XCTestCase {
         ProfilePayload(uid: uid, displayName: name, department: "情報工学科", grade: 2, message: "")
     }
 
-    func testSaveAssignsFreeSpotAndTopZIndex() throws {
+    func testSaveAssignsTopZIndexAndKeepsInCollection() throws {
         let ctx = try context()
         let a = try StickerStore.saveReceived(payload("a"), icon: Data([1]), in: ctx)
         let b = try StickerStore.saveReceived(payload("b"), icon: Data([2]), in: ctx)
         XCTAssertEqual(a.zIndex, 1)
         XCTAssertEqual(b.zIndex, 2)
-        XCTAssertNotEqual(a.positionX == b.positionX && a.positionY == b.positionY, true)
         XCTAssertTrue((-15...15).contains(b.rotation))
+        XCTAssertFalse(a.isPlaced, "貼るかどうかはG7で決める")
     }
 
     func testReExchangeOverwritesSamePartner() throws {
@@ -87,6 +87,15 @@ final class StickerStoreTests: XCTestCase {
         XCTAssertEqual(again.zIndex, 3, "最前面に出す")
     }
 
+    func testReExchangeKeepsPlacedSticker() throws {
+        let ctx = try context()
+        let a = try StickerStore.saveReceived(payload("a"), icon: Data([1]), in: ctx)
+        StickerStore.place(a, x: 0.3, y: 0.4, in: ctx)
+        let again = try StickerStore.saveReceived(payload("a"), icon: Data([2]), in: ctx)
+        XCTAssertTrue(again.isPlaced)
+        XCTAssertEqual(again.positionX, 0.3, accuracy: 1e-9, "貼っていた位置はそのまま")
+    }
+
     func testPlaceBringsToFront() throws {
         let ctx = try context()
         let a = try StickerStore.saveReceived(payload("a"), icon: Data([1]), in: ctx)
@@ -94,7 +103,27 @@ final class StickerStoreTests: XCTestCase {
         StickerStore.place(a, x: 0.3, y: 0.4, in: ctx)
         XCTAssertEqual(a.zIndex, 3)
         XCTAssertEqual(a.positionX, 0.3, accuracy: 1e-9)
-        StickerStore.peel(a, in: ctx)
+        XCTAssertTrue(a.isPlaced)
+    }
+
+    func testUnplaceKeepsStickerAndDeleteRemovesIt() throws {
+        let ctx = try context()
+        let a = try StickerStore.saveReceived(payload("a"), icon: Data([1]), in: ctx)
+        StickerStore.placeAtFreeSpot(a, in: ctx)
+        XCTAssertTrue(a.isPlaced)
+        StickerStore.unplace(a, in: ctx)
+        XCTAssertFalse(a.isPlaced)
         XCTAssertEqual(try ctx.fetch(FetchDescriptor<Sticker>()).count, 1)
+        StickerStore.delete(a, in: ctx)
+        XCTAssertEqual(try ctx.fetch(FetchDescriptor<Sticker>()).count, 0)
+    }
+
+    func testFreeSpotIgnoresUnplacedStickers() throws {
+        let ctx = try context()
+        let a = try StickerStore.saveReceived(payload("a"), icon: Data([1]), in: ctx)
+        let b = try StickerStore.saveReceived(payload("b"), icon: Data([2]), in: ctx)
+        // どちらも貼っていないので、空いている位置の計算では同じ候補になる（ずらしの分だけ違う）
+        XCTAssertEqual(a.positionX, b.positionX, accuracy: 0.061)
+        XCTAssertEqual(a.positionY, b.positionY, accuracy: 0.061)
     }
 }
