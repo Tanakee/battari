@@ -16,7 +16,7 @@ struct StickerCaseBar: View {
     private let caseWidth: CGFloat = 76
     private let side: CGFloat = 52
     /// 重ならずに並ぶときの間隔
-    private var full: CGFloat { side + 10 }
+    private var full: CGFloat { side + 16 }
     /// 重ねて詰めるときの間隔
     private var packed: CGFloat { side * 0.28 }
 
@@ -55,7 +55,7 @@ struct StickerCaseBar: View {
                     let d = Double(i) - current
                     StickerImage(image: sticker.iconImage, shapeKey: sticker.partnerUid, size: side)
                         .rotationEffect(.degrees(sticker.rotation))
-                        .scaleEffect(open ? (abs(d) > 1.5 ? 0.88 : 1) : 0.4)
+                        .scaleEffect(open ? scale(d) : 0.4)
                         .matchedGeometryEffect(id: sticker.id, in: namespace)
                         .contentShape(Circle())
                         .onTapGesture { tap(i, sticker) }
@@ -98,6 +98,13 @@ struct StickerCaseBar: View {
         let a = abs(d)
         let x = a <= 1 ? CGFloat(a) * full : full + CGFloat(a - 1) * packed
         return d < 0 ? -x : x
+    }
+
+    /// 見ているステッカーは大きく、重なっているものは小さく。スワイプ中もなめらかに変わるよう距離から計算する
+    private func scale(_ d: Double) -> CGFloat {
+        let a = abs(d)
+        if a <= 1 { return 1 + 0.2 * CGFloat(1 - a) }
+        return 1 - 0.12 * CGFloat(min(a - 1, 1))
     }
 
     private func tap(_ i: Int, _ sticker: Sticker) {
